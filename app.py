@@ -16,6 +16,7 @@ import xarray as xr
 from collections import OrderedDict
 
 n = 1000000
+max_points = 500000
 
 np.random.seed(2)
 cols = ['Signal'] # Column name of signal
@@ -147,8 +148,7 @@ app.layout = html.Div([
                     id = 'graph-1',
                     figure = fig1,
                     config = {
-                        'doubleClick': 'reset',
-                        'displayModeBar': False
+                        'doubleClick': 'reset'
                     }
                 )
             ], className = 'twelve columns')
@@ -156,7 +156,7 @@ app.layout = html.Div([
 
         html.Div([
             html.Div([
-                html.Strong('0 points selected', id = 'header-2-b'),
+                html.Strong('0 points selected', id = 'header-2'),
                 dcc.Graph(
                     id = 'graph-2',
                     figure = fig2
@@ -167,13 +167,20 @@ app.layout = html.Div([
     ])
 
 @app.callback(
-    Output('header-2-b', 'children'),
+    Output('header-2', 'children'),
     [Input('graph-1', 'relayoutData')])
 def selectionRange(selection):
-    number_print = []
     if selection is not None and 'xaxis.range[0]' in selection and 'xaxis.range[1]' in selection:
-        number_print = "{2} points selected between {0:,.4} and {1:,.4}".format(selection['xaxis.range[0]'],
-        selection['xaxis.range[1]'],  int(selection['xaxis.range[1]'] - selection['xaxis.range[0]']))
+        x0 = selection['xaxis.range[0]']
+        x1 = selection['xaxis.range[1]']
+        sub_df = df[(df.Time >= x0) & (df.Time <= x1)] # Slice the dataframe
+        num_pts = len(sub_df)
+        if num_pts < max_points:
+            number_print = "{2} points selected between {0:,.4} and {1:,.4}".format(selection['xaxis.range[0]'],
+            selection['xaxis.range[1]'],  abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+        else:
+            number_print = "{0} points selected. Select less than 500k points to invoke high-res scattergl trace".format(
+            abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
     else:
         number_print = "0 points selected"
     return number_print
@@ -182,25 +189,32 @@ def selectionRange(selection):
     Output('graph-2', 'figure'),
     [Input('graph-1', 'relayoutData')])
 def selectionHighlight(selection):
+    new_fig2 = fig2.copy()
     if selection is not None and 'xaxis.range[0]' in selection and 'xaxis.range[1]' in selection:
-        shape = dict(
-            type = 'rect',
-            xref = 'x',
-            yref = 'paper',
-            y0 = 0,
-            y1 = 1,
-            x0 = selection['xaxis.range[0]'],
-            x1 = selection['xaxis.range[1]'],
-            line = {
-                'color': 'rgba(255, 0, 0, 1)',
-                'width': 1,
-            },
-            fillcolor = 'rgba(255, 0, 0, 0.7)'
-        )
-        new_fig2 = fig2.copy()
-        new_fig2['layout']['shapes'] = [shape]
+        x0 = selection['xaxis.range[0]'] # return selection data
+        x1 = selection['xaxis.range[1]'] # return selection data
+        sub_df = df[(df.Time >= x0) & (df.Time <= x1)] # Slice the dataframe
+        num_pts = len(sub_df)
+        if num_pts < max_points:
+            shape = dict(
+                type = 'rect',
+                xref = 'x',
+                yref = 'paper',
+                y0 = 0,
+                y1 = 1,
+                x0 = x0,
+                x1 = x1,
+                line = {
+                    'color': 'rgba(255, 0, 0, 1)',
+                    'width': 1,
+                },
+                fillcolor = 'rgba(255, 0, 0, 0.7)'
+            )
+
+            new_fig2['layout']['shapes'] = [shape]
+        else:
+            new_fig2['layout']['shapes'] = []
     else:
-        new_fig2 = fig2.copy()
         new_fig2['layout']['shapes'] = []
     return new_fig2
 
@@ -208,28 +222,28 @@ def selectionHighlight(selection):
     Output('graph-1', 'figure'),
     [Input('graph-1', 'relayoutData')])
 def draw_undecimated_data(selection):
-    pt_cloud = [dict(x=[], y=[], type='scattergl')]
+    new_fig1 = fig1.copy()
     if selection is not None and 'xaxis.range[0]' in selection and 'xaxis.range[1]' in selection:
-        new_fig1 = fig1.copy()
-        x0 = selection['xaxis.range[0]']
-        x1 = selection['xaxis.range[1]']
-        # Slice the dataframe
-        sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
+        x0 = selection['xaxis.range[0]'] # return selection data
+        x1 = selection['xaxis.range[1]'] # return selection data
+        sub_df = df[(df.Time >= x0) & (df.Time <= x1)] # Slice the dataframe
         num_pts = len(sub_df)
-        # if num_pts < 10000:
-        pt_cloud_data = [dict(
-                         x=sub_df['Time'],
-                         y=sub_df['Signal'],
-                         type='scattergl',
-                         marker=dict(sizemin=1, sizemax=30, color='darkblue')
-                         )]
-        pt_cloud_layout = new_fig1['layout']
-        pt_cloud = dict( data = pt_cloud_data, layout = pt_cloud_layout)
+        if num_pts < max_points:
+            high_res_data = [dict(
+                             x=sub_df['Time'],
+                             y=sub_df['Signal'],
+                             type='scattergl',
+                             marker=dict(sizemin=1, sizemax=30, color='darkblue')
+                             )]
+            high_res_layout = new_fig1['layout']
+            high_res = dict( data = high_res_data, layout = high_res_layout)
+        else:
+            high_res = fig1.copy()
     else:
-        pt_cloud = fig1.copy()
-    return pt_cloud
+        high_res = fig1.copy()
+    return high_res
 
 app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
 
 if __name__ == '__main__':
-    app.run_server(port = 7000)
+    app.run_server(port = 7000, debug=True)
