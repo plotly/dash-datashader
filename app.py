@@ -128,59 +128,67 @@ app = dash.Dash()
 server = app.server
 
 app.layout = html.Div([
+    html.Div([
         html.Div([
-            html.Div([
-                html.H3('VISUALIZE 100 MILLION POINTS WITH DATASHADER AND PLOTLY')
-            ], className = "eight columns"),
-
-            html.Div([
-                html.Img(src="https://s3-us-west-1.amazonaws.com/plotly-tutorials/logo/new-branding/dash-logo-by-plotly-stripe.png",
-                        style={
-                            'height': '100px',
-                            'float': 'right'}),
-            ], className = "four columns")
-        ], className = "row"),
+            html.H3('VISUALIZE 100 MILLION POINTS WITH DATASHADER AND PLOTLY')
+        ], className = "eight columns"),
 
         html.Div([
-            html.Div([
-                html.Strong('Click and drag on the plot for high-res view of selected data', id = 'header-1'),
-                dcc.Graph(
-                    id = 'graph-1',
-                    figure = fig1,
-                    config = {
-                        'doubleClick': 'reset'
-                    }
-                )
-            ], className = 'twelve columns')
-        ], className ='row'),
+            html.Img(
+                src=('https://s3-us-west-1.amazonaws.com/plotly-tutorials/'
+                'logo/new-branding/dash-logo-by-plotly-stripe.png'),
+                style={
+                    'height': '100px',
+                    'float': 'right'}),
+        ], className = "four columns")
+    ], className = "row"),
 
+    html.Div([
         html.Div([
-            html.Div([
-                html.Strong('0 points selected', id = 'header-2'),
-                dcc.Graph(
-                    id = 'graph-2',
-                    figure = fig2
-                )
-            ], className = 'twelve columns')
-        ], className ='row'),
+            html.Strong('Click and drag on the plot for high-res view of\
+             selected data', id = 'header-1'),
+            dcc.Graph(
+                id = 'graph-1',
+                figure = fig1,
+                config = {
+                    'doubleClick': 'reset'
+                }
+            )
+        ], className = 'twelve columns')
+    ], className ='row'),
 
-    ])
+    html.Div([
+        html.Div([
+            html.Strong('0 points selected', id = 'header-2'),
+            dcc.Graph(
+                id = 'graph-2',
+                figure = fig2
+            )
+        ], className = 'twelve columns')
+    ], className ='row'),
+
+])
 
 @app.callback(
     Output('header-2', 'children'),
     [Input('graph-1', 'relayoutData')])
 def selectionRange(selection):
-    if selection is not None and 'xaxis.range[0]' in selection and 'xaxis.range[1]' in selection:
+    if selection is not None and 'xaxis.range[0]' in selection and \
+                                 'xaxis.range[1]' in selection:
         x0 = selection['xaxis.range[0]']
         x1 = selection['xaxis.range[1]']
-        sub_df = df[(df.Time >= x0) & (df.Time <= x1)] # Slice the dataframe
+        sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
-            number_print = "{2} points selected between {0:,.4} and {1:,.4}".format(selection['xaxis.range[0]'],
-            selection['xaxis.range[1]'],  abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+            number_print = "{2} points selected between {0:,.4} and {1:,.4}".\
+            format(selection['xaxis.range[0]'], selection['xaxis.range[1]'],
+            abs(int(selection['xaxis.range[1]']) - \
+            int(selection['xaxis.range[0]'])))
         else:
-            number_print = "{0} points selected. Select less than 500k points to invoke high-res scattergl trace".format(
-            abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+            number_print = "{0} points selected. Select less than 500k \
+            points to invoke high-res scattergl trace".format(
+            abs(int(selection['xaxis.range[1]']) - \
+            int(selection['xaxis.range[0]'])))
     else:
         number_print = "0 points selected"
     return number_print
@@ -190,10 +198,11 @@ def selectionRange(selection):
     [Input('graph-1', 'relayoutData')])
 def selectionHighlight(selection):
     new_fig2 = fig2.copy()
-    if selection is not None and 'xaxis.range[0]' in selection and 'xaxis.range[1]' in selection:
-        x0 = selection['xaxis.range[0]'] # return selection data
-        x1 = selection['xaxis.range[1]'] # return selection data
-        sub_df = df[(df.Time >= x0) & (df.Time <= x1)] # Slice the dataframe
+    if selection is not None and 'xaxis.range[0]' in selection and \
+                                 'xaxis.range[1]' in selection:
+        x0 = selection['xaxis.range[0]']
+        x1 = selection['xaxis.range[1]']
+        sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
             shape = dict(
@@ -223,18 +232,24 @@ def selectionHighlight(selection):
     [Input('graph-1', 'relayoutData')])
 def draw_undecimated_data(selection):
     new_fig1 = fig1.copy()
-    if selection is not None and 'xaxis.range[0]' in selection and 'xaxis.range[1]' in selection:
-        x0 = selection['xaxis.range[0]'] # return selection data
-        x1 = selection['xaxis.range[1]'] # return selection data
-        sub_df = df[(df.Time >= x0) & (df.Time <= x1)] # Slice the dataframe
+    if selection is not None and 'xaxis.range[0]' in selection and \
+                                 'xaxis.range[1]' in selection:
+        x0 = selection['xaxis.range[0]']
+        x1 = selection['xaxis.range[1]']
+        sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
-            high_res_data = [dict(
-                             x=sub_df['Time'],
-                             y=sub_df['Signal'],
-                             type='scattergl',
-                             marker=dict(sizemin=1, sizemax=30, color='darkblue')
-                             )]
+            high_res_data = [
+                dict(
+                   x=sub_df['Time'],
+                   y=sub_df['Signal'],
+                   type='scattergl',
+                   marker=dict(
+                      sizemin=1,
+                      sizemax=30,
+                      color='darkblue'
+                   )
+                )]
             high_res_layout = new_fig1['layout']
             high_res = dict( data = high_res_data, layout = high_res_layout)
         else:
@@ -243,7 +258,9 @@ def draw_undecimated_data(selection):
         high_res = fig1.copy()
     return high_res
 
-app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
+app.css.append_css(
+    {"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"}
+)
 
 if __name__ == '__main__':
-    app.run_server(port = 7000, debug=True)
+    app.run_server(debug=True)
