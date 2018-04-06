@@ -16,7 +16,7 @@ import xarray as xr
 from collections import OrderedDict
 
 n = 1000000
-max_points = 500000
+max_points = 100000
 
 np.random.seed(2)
 cols = ['Signal'] # Column name of signal
@@ -71,14 +71,13 @@ fig1 = {
         'showscale': False,
         'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, 'rgba(0,0,255,1)']]}],
     'layout': {
-        'margin': {'t': 50, 'b': 0},
+        'margin': {'t': 50, 'b': 20},
         'height': 250,
         'xaxis': {
-            'showline': False,
+            'showline': True,
             'zeroline': False,
             'showgrid': False,
-            'showticklabels': False,
-            'ticks': ''
+            'showticklabels': True
         },
         'yaxis': {
             'fixedrange': True,
@@ -101,15 +100,14 @@ fig2 = {
         'showscale': False,
         'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, 'rgba(0,0,255,1)']]}],
     'layout': {
-        'margin': {'t': 50, 'b': 0},
+        'margin': {'t': 50, 'b': 20},
         'height': 250,
         'xaxis': {
             'fixedrange': True,
-            'showline': False,
+            'showline': True,
             'zeroline': False,
             'showgrid': False,
-            'showticklabels': False,
-            'ticks': ''
+            'showticklabels': True
         },
         'yaxis': {
             'fixedrange': True,
@@ -130,7 +128,7 @@ server = app.server
 app.layout = html.Div([
     html.Div([
         html.Div([
-            html.H3('VISUALIZE 100 MILLION POINTS WITH DATASHADER AND PLOTLY')
+            html.H3('VISUALIZE MILLIONS OF POINTS WITH DATASHADER AND PLOTLY')
         ], className = "eight columns"),
 
         html.Div([
@@ -180,15 +178,15 @@ def selectionRange(selection):
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
-            number_print = "{2} points selected between {0:,.4} and {1:,.4}".\
+            number_print = "{2:,} points selected between {0:,.4} and {1:,.4}".\
             format(selection['xaxis.range[0]'], selection['xaxis.range[1]'],
             abs(int(selection['xaxis.range[1]']) - \
             int(selection['xaxis.range[0]'])))
         else:
-            number_print = "{0} points selected. Select less than 500k \
+            number_print = "{0:,} points selected. Select less than {1:}k \
             points to invoke high-res scattergl trace".format(
             abs(int(selection['xaxis.range[1]']) - \
-            int(selection['xaxis.range[0]'])))
+            int(selection['xaxis.range[0]'])), (max_points/1000))
     else:
         number_print = "0 points selected"
     return number_print
