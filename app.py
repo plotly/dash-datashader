@@ -80,7 +80,7 @@ fig1 = {
         'z': z,
         'type': 'heatmap',
         'showscale': False,
-        'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, 'rgba(0,0,255,1)']]}],
+        'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, '#a3a7b0']]}],
     'layout': {
         'margin': {'t': 50, 'b': 20},
         'height': 250,
@@ -98,18 +98,21 @@ fig1 = {
             'showticklabels': False,
             'ticks': ''
         },
-        'plot_bgcolor': 'white',
-        'paper_bgcolor': 'white'}
+        'plot_bgcolor': '#23272c',
+        'paper_bgcolor': '#23272c'}
 }
 
 fig2 = {
-    'data': [{
-        'x': x,
-        'y': y,
-        'z': z,
-        'type': 'heatmap',
-        'showscale': False,
-        'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, 'rgba(0,0,255,1)']]}],
+    'data': [
+        {
+            'x': x,
+            'y': y,
+            'z': z,
+            'type': 'heatmap',
+            'showscale': False,
+            'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, '#75baf2']]
+        }
+    ],
     'layout': {
         'margin': {'t': 50, 'b': 20},
         'height': 250,
@@ -128,14 +131,14 @@ fig2 = {
             'showticklabels': False,
             'ticks': ''
         },
-        'plot_bgcolor': 'white',
-        'paper_bgcolor': 'white'}
+        'plot_bgcolor': '#23272c',
+        'paper_bgcolor': '#23272c'}
 }
 
 app.layout = html.Div([
     html.Div([
         html.Div([
-            html.H3('VISUALIZE MILLIONS OF POINTS WITH DATASHADER AND PLOTLY')
+            html.H3('Visualize millions of points with datashader and Plotly')
         ], className="eight columns"),
 
         html.Div([
@@ -143,11 +146,11 @@ app.layout = html.Div([
                 src=('https://s3-us-west-1.amazonaws.com/plotly-tutorials/'
                      'logo/new-branding/dash-logo-by-plotly-stripe.png'),
                 style={
-                    'height': '100px',
+                    'height': '75px',
                     'float': 'right'}),
         ], className="four columns")
     ], className="row"),
-
+    html.Hr(),
     html.Div([
         html.Div([
             html.Strong('Click and drag on the plot for high-res view of\
@@ -225,10 +228,10 @@ def selectionHighlight(selection):
                 x0=x0,
                 x1=x1,
                 line={
-                    'color': 'rgba(255, 0, 0, 1)',
-                    'width': 1,
+                    # 'color': 'rgba(255, 0, 0, 1)',
+                    'width': 0,
                 },
-                fillcolor='rgba(255, 0, 0, 0.7)'
+                fillcolor='rgba(165, 131, 226, 0.10)'
             )
 
             new_fig2['layout']['shapes'] = [shape]
@@ -259,7 +262,7 @@ def draw_undecimated_data(selection):
                     marker=dict(
                         sizemin=1,
                         sizemax=30,
-                        color='darkblue'
+                        color='#a3a7b0'
                     )
                 )]
             high_res_layout = new_fig1['layout']

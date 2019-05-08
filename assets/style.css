@@ -2,4 +2,14 @@
 
 body{
     font-family: 'Roboto', sans-serif;
+    color: #a3a7b0;
+    background-color: #23272c;
+    margin: 0;
+    padding: 0;
+}
+
+hr{
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.20);
+    border: 0;
 }
