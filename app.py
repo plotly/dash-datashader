@@ -3,7 +3,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.plotly as py
 import plotly.graph_objs as go
 import datashader as ds
@@ -15,13 +15,17 @@ import copy
 import xarray as xr
 from collections import OrderedDict
 
+#######################################################################################################################
+# Data generation
+#######################################################################################################################
+
 n = 1000000
 max_points = 100000
 
 np.random.seed(2)
-cols = ['Signal'] # Column name of signal
-start = 1456297053 # Start time
-end = start + n # End time
+cols = ['Signal']  # Column name of signal
+start = 1456297053  # Start time
+end = start + n  # End time
 
 # Generate a fake signal
 time = np.linspace(start, end, n)
@@ -29,7 +33,7 @@ signal = np.random.normal(0, 0.3, size=n).cumsum() + 50
 
 # Generate many noisy samples from the signal
 noise = lambda var, bias, n: np.random.normal(bias, var, n)
-data = {c: signal + noise(1, 10*(np.random.random() - 0.5), n) for c in cols}
+data = {c: signal + noise(1, 10 * (np.random.random() - 0.5), n) for c in cols}
 
 # # Pick a few samples and really blow them out
 locs = np.random.choice(n, 10)
@@ -48,7 +52,7 @@ df = pd.DataFrame(data)
 time_start = df['Time'].values[0]
 time_end = df['Time'].values[-1]
 
-cvs = ds.Canvas(x_range = x_range, y_range=y_range)
+cvs = ds.Canvas(x_range=x_range, y_range=y_range)
 
 aggs = OrderedDict((c, cvs.line(df, 'Time', c)) for c in cols)
 img = tf.shade(aggs['Signal'])
@@ -62,6 +66,14 @@ dims = len(z[0]), len(z)
 x = np.linspace(x_range[0], x_range[1], dims[0])
 y = np.linspace(y_range[0], y_range[1], dims[0])
 
+#######################################################################################################################
+# Layout
+#######################################################################################################################
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', '/assets/style.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
+
 fig1 = {
     'data': [{
         'x': x,
@@ -69,7 +81,7 @@ fig1 = {
         'z': z,
         'type': 'heatmap',
         'showscale': False,
-        'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, 'rgba(0,0,255,1)']]}],
+        'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, '#a3a7b0']]}],
     'layout': {
         'margin': {'t': 50, 'b': 20},
         'height': 250,
@@ -77,7 +89,8 @@ fig1 = {
             'showline': True,
             'zeroline': False,
             'showgrid': False,
-            'showticklabels': True
+            'showticklabels': True,
+            'color': '#a3a7b0'
         },
         'yaxis': {
             'fixedrange': True,
@@ -85,20 +98,24 @@ fig1 = {
             'zeroline': False,
             'showgrid': False,
             'showticklabels': False,
-            'ticks': ''
+            'ticks': '',
+            'color': '#a3a7b0'
         },
-        'plot_bgcolor': 'white',
-        'paper_bgcolor': 'white'}
+        'plot_bgcolor': '#23272c',
+        'paper_bgcolor': '#23272c'}
 }
 
 fig2 = {
-    'data': [{
-        'x': x,
-        'y': y,
-        'z': z,
-        'type': 'heatmap',
-        'showscale': False,
-        'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, 'rgba(0,0,255,1)']]}],
+    'data': [
+        {
+            'x': x,
+            'y': y,
+            'z': z,
+            'type': 'heatmap',
+            'showscale': False,
+            'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, '#75baf2']]
+        }
+    ],
     'layout': {
         'margin': {'t': 50, 'b': 20},
         'height': 250,
@@ -107,7 +124,8 @@ fig2 = {
             'showline': True,
             'zeroline': False,
             'showgrid': False,
-            'showticklabels': True
+            'showticklabels': True,
+            'color': '#a3a7b0'
         },
         'yaxis': {
             'fixedrange': True,
@@ -115,81 +133,99 @@ fig2 = {
             'zeroline': False,
             'showgrid': False,
             'showticklabels': False,
-            'ticks': ''
+            'ticks': '',
+            'color': '#a3a7b0'
         },
-        'plot_bgcolor': 'white',
-        'paper_bgcolor': 'white'}
+        'plot_bgcolor': '#23272c',
+        'paper_bgcolor': '#23272c'}
 }
 
-app = dash.Dash()
-
-server = app.server
-
 app.layout = html.Div([
+    html.Div(
+        id='header',
+        children=[
+            html.Div([
+                html.H3('Visualize millions of points with datashader and Plotly')
+            ], className="eight columns"),
+
+            html.Div([
+                html.Img(
+                    id='logo',
+                    src=app.get_asset_url('dash-logo.png'),
+                    style={
+                        'height': '50px',
+                        'float': 'right'}),
+            ], className="four columns")
+        ], className="row"),
+    html.Hr(),
     html.Div([
         html.Div([
-            html.H3('VISUALIZE MILLIONS OF POINTS WITH DATASHADER AND PLOTLY')
-        ], className = "eight columns"),
-
-        html.Div([
-            html.Img(
-                src=('https://s3-us-west-1.amazonaws.com/plotly-tutorials/'
-                'logo/new-branding/dash-logo-by-plotly-stripe.png'),
-                style={
-                    'height': '100px',
-                    'float': 'right'}),
-        ], className = "four columns")
-    ], className = "row"),
-
-    html.Div([
-        html.Div([
-            html.Strong('Click and drag on the plot for high-res view of\
-             selected data', id = 'header-1'),
+            html.P('Click and drag on the plot for high-res view of\
+             selected data', id='header-1'),
             dcc.Graph(
-                id = 'graph-1',
-                figure = fig1,
-                config = {
+                id='graph-1',
+                figure=fig1,
+                config={
                     'doubleClick': 'reset'
                 }
             )
-        ], className = 'twelve columns')
-    ], className ='row'),
+        ], className='twelve columns')
+    ], className='row'),
 
     html.Div([
         html.Div([
-            html.Strong('0 points selected', id = 'header-2'),
+            html.Div(
+                children=[
+                    html.Strong(
+                        children=['0'],
+                        id='header-2-strong'
+                    ),
+                    html.P(
+                        children=[' points selected'],
+                        id='header-2-p'
+                    ),
+                ],
+                id='header-2'
+            ),
             dcc.Graph(
-                id = 'graph-2',
-                figure = fig2
+                id='graph-2',
+                figure=fig2
             )
-        ], className = 'twelve columns')
-    ], className ='row'),
+        ], className='twelve columns')
+    ], className='row'),
 
 ])
 
+
+#######################################################################################################################
+# Callbacks
+#######################################################################################################################
+
 @app.callback(
-    Output('header-2', 'children'),
-    [Input('graph-1', 'relayoutData')])
+    [Output('header-2-strong', 'children'),
+     Output('header-2-p', 'children')],
+    [Input('graph-1', 'relayoutData')]
+)
 def selectionRange(selection):
     if selection is not None and 'xaxis.range[0]' in selection and \
-                                 'xaxis.range[1]' in selection:
+            'xaxis.range[1]' in selection:
         x0 = selection['xaxis.range[0]']
         x1 = selection['xaxis.range[1]']
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
-            number_print = "{2:,} points selected between {0:,.4} and {1:,.4}".\
-            format(selection['xaxis.range[0]'], selection['xaxis.range[1]'],
-            abs(int(selection['xaxis.range[1]']) - \
-            int(selection['xaxis.range[0]'])))
+            number = "{:,}".format(abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+            number_print = " points selected between {0:,.4} and {1:,.4}". \
+                format(selection['xaxis.range[0]'], selection['xaxis.range[1]'])
         else:
-            number_print = "{0:,} points selected. Select less than {1:}k \
-            points to invoke high-res scattergl trace".format(
-            abs(int(selection['xaxis.range[1]']) - \
-            int(selection['xaxis.range[0]'])), (max_points/1000))
+            number = "{:,}".format(abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+            number_print = " points selected. Select less than {0:}k \
+            points to invoke high-res scattergl trace".format(max_points / 1000)
     else:
-        number_print = "0 points selected"
-    return number_print
+        number = "0"
+        number_print = " points selected"
+    return [number, number_print]
+
 
 @app.callback(
     Output('graph-2', 'figure'),
@@ -197,25 +233,24 @@ def selectionRange(selection):
 def selectionHighlight(selection):
     new_fig2 = fig2.copy()
     if selection is not None and 'xaxis.range[0]' in selection and \
-                                 'xaxis.range[1]' in selection:
+            'xaxis.range[1]' in selection:
         x0 = selection['xaxis.range[0]']
         x1 = selection['xaxis.range[1]']
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
             shape = dict(
-                type = 'rect',
-                xref = 'x',
-                yref = 'paper',
-                y0 = 0,
-                y1 = 1,
-                x0 = x0,
-                x1 = x1,
-                line = {
-                    'color': 'rgba(255, 0, 0, 1)',
-                    'width': 1,
+                type='rect',
+                xref='x',
+                yref='paper',
+                y0=0,
+                y1=1,
+                x0=x0,
+                x1=x1,
+                line={
+                    'width': 0,
                 },
-                fillcolor = 'rgba(255, 0, 0, 0.7)'
+                fillcolor='rgba(165, 131, 226, 0.10)'
             )
 
             new_fig2['layout']['shapes'] = [shape]
@@ -225,13 +260,14 @@ def selectionHighlight(selection):
         new_fig2['layout']['shapes'] = []
     return new_fig2
 
+
 @app.callback(
     Output('graph-1', 'figure'),
     [Input('graph-1', 'relayoutData')])
 def draw_undecimated_data(selection):
     new_fig1 = fig1.copy()
     if selection is not None and 'xaxis.range[0]' in selection and \
-                                 'xaxis.range[1]' in selection:
+            'xaxis.range[1]' in selection:
         x0 = selection['xaxis.range[0]']
         x1 = selection['xaxis.range[1]']
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
@@ -239,26 +275,23 @@ def draw_undecimated_data(selection):
         if num_pts < max_points:
             high_res_data = [
                 dict(
-                   x=sub_df['Time'],
-                   y=sub_df['Signal'],
-                   type='scattergl',
-                   marker=dict(
-                      sizemin=1,
-                      sizemax=30,
-                      color='darkblue'
-                   )
+                    x=sub_df['Time'],
+                    y=sub_df['Signal'],
+                    type='scattergl',
+                    marker=dict(
+                        sizemin=1,
+                        sizemax=30,
+                        color='#a3a7b0'
+                    )
                 )]
             high_res_layout = new_fig1['layout']
-            high_res = dict( data = high_res_data, layout = high_res_layout)
+            high_res = dict(data=high_res_data, layout=high_res_layout)
         else:
             high_res = fig1.copy()
     else:
         high_res = fig1.copy()
     return high_res
 
-app.css.append_css(
-    {"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"}
-)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
