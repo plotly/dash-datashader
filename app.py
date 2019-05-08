@@ -70,7 +70,8 @@ y = np.linspace(y_range[0], y_range[1], dims[0])
 # Layout
 #######################################################################################################################
 
-app = dash.Dash()
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', '/assets/style.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 
 fig1 = {
@@ -291,10 +292,6 @@ def draw_undecimated_data(selection):
         high_res = fig1.copy()
     return high_res
 
-
-app.css.append_css(
-    {"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"}
-)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
