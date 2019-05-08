@@ -151,7 +151,7 @@ app.layout = html.Div([
             html.Div([
                 html.Img(
                     id='logo',
-                    src='/assets/dash-logo.png',
+                    src=app.get_asset_url('dash-logo.png'),
                     style={
                         'height': '50px',
                         'float': 'right'}),
