@@ -88,7 +88,8 @@ fig1 = {
             'showline': True,
             'zeroline': False,
             'showgrid': False,
-            'showticklabels': True
+            'showticklabels': True,
+            'color': '#a3a7b0'
         },
         'yaxis': {
             'fixedrange': True,
@@ -96,7 +97,8 @@ fig1 = {
             'zeroline': False,
             'showgrid': False,
             'showticklabels': False,
-            'ticks': ''
+            'ticks': '',
+            'color': '#a3a7b0'
         },
         'plot_bgcolor': '#23272c',
         'paper_bgcolor': '#23272c'}
@@ -121,7 +123,8 @@ fig2 = {
             'showline': True,
             'zeroline': False,
             'showgrid': False,
-            'showticklabels': True
+            'showticklabels': True,
+            'color': '#a3a7b0'
         },
         'yaxis': {
             'fixedrange': True,
@@ -129,7 +132,8 @@ fig2 = {
             'zeroline': False,
             'showgrid': False,
             'showticklabels': False,
-            'ticks': ''
+            'ticks': '',
+            'color': '#a3a7b0'
         },
         'plot_bgcolor': '#23272c',
         'paper_bgcolor': '#23272c'}
@@ -198,10 +202,8 @@ app.layout = html.Div([
 
 @app.callback(
     [Output('header-2-strong', 'children'),
-     Output('header-2-p', 'children')
-     ],
-    [Input('graph-1', 'relayoutData')],
-    [State('header-2', 'children')]
+     Output('header-2-p', 'children')],
+    [Input('graph-1', 'relayoutData')]
 )
 def selectionRange(selection):
     if selection is not None and 'xaxis.range[0]' in selection and \
@@ -211,18 +213,17 @@ def selectionRange(selection):
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
-            number_print = "{2:,} points selected between {0:,.4} and {1:,.4}". \
-                format(selection['xaxis.range[0]'], selection['xaxis.range[1]'],
-                       abs(int(selection['xaxis.range[1]']) - \
-                           int(selection['xaxis.range[0]'])))
+            number = "{:,}".format(abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+            number_print = " points selected between {0:,.4} and {1:,.4}". \
+                format(selection['xaxis.range[0]'], selection['xaxis.range[1]'])
         else:
-            number_print = "{0:,} points selected. Select less than {1:}k \
-            points to invoke high-res scattergl trace".format(
-                abs(int(selection['xaxis.range[1]']) - \
-                    int(selection['xaxis.range[0]'])), (max_points / 1000))
+            number = "{:,}".format(abs(int(selection['xaxis.range[1]']) - int(selection['xaxis.range[0]'])))
+            number_print = " points selected. Select less than {0:}k \
+            points to invoke high-res scattergl trace".format(max_points / 1000)
     else:
-        number_print = "0 points selected"
-    return number_print
+        number = "0"
+        number_print = " points selected"
+    return [number, number_print]
 
 
 @app.callback(

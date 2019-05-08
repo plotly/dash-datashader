@@ -33,7 +33,17 @@ p, #header-2{
     margin: 0 7% 5% 7%;
 }
 
+#header-2{
+    display: flex;
+    flex-direction: row;
+}
+
 strong{
     font-family: 'Roboto Medium', sans-serif !important;
     color: #75baf2 !important;
+}
+
+#header-2-p{
+    margin: 0 0 0 0.5rem;
+    padding: 0;
 }
