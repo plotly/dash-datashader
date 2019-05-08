@@ -3,7 +3,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.plotly as py
 import plotly.graph_objs as go
 import datashader as ds
@@ -136,24 +136,26 @@ fig2 = {
 }
 
 app.layout = html.Div([
-    html.Div([
-        html.Div([
-            html.H3('Visualize millions of points with datashader and Plotly')
-        ], className="eight columns"),
+    html.Div(
+        id='header',
+        children=[
+            html.Div([
+                html.H3('Visualize millions of points with datashader and Plotly')
+            ], className="eight columns"),
 
-        html.Div([
-            html.Img(
-                src=('https://s3-us-west-1.amazonaws.com/plotly-tutorials/'
-                     'logo/new-branding/dash-logo-by-plotly-stripe.png'),
-                style={
-                    'height': '75px',
-                    'float': 'right'}),
-        ], className="four columns")
-    ], className="row"),
+            html.Div([
+                html.Img(
+                    id='logo',
+                    src='/assets/dash-logo.png',
+                    style={
+                        'height': '50px',
+                        'float': 'right'}),
+            ], className="four columns")
+        ], className="row"),
     html.Hr(),
     html.Div([
         html.Div([
-            html.Strong('Click and drag on the plot for high-res view of\
+            html.P('Click and drag on the plot for high-res view of\
              selected data', id='header-1'),
             dcc.Graph(
                 id='graph-1',
@@ -167,7 +169,19 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.Strong('0 points selected', id='header-2'),
+            html.Div(
+                children=[
+                    html.Strong(
+                        children=['0'],
+                        id='header-2-strong'
+                    ),
+                    html.P(
+                        children=[' points selected'],
+                        id='header-2-p'
+                    ),
+                ],
+                id='header-2'
+            ),
             dcc.Graph(
                 id='graph-2',
                 figure=fig2
@@ -183,8 +197,12 @@ app.layout = html.Div([
 #######################################################################################################################
 
 @app.callback(
-    Output('header-2', 'children'),
-    [Input('graph-1', 'relayoutData')])
+    [Output('header-2-strong', 'children'),
+     Output('header-2-p', 'children')
+     ],
+    [Input('graph-1', 'relayoutData')],
+    [State('header-2', 'children')]
+)
 def selectionRange(selection):
     if selection is not None and 'xaxis.range[0]' in selection and \
             'xaxis.range[1]' in selection:
@@ -228,7 +246,6 @@ def selectionHighlight(selection):
                 x0=x0,
                 x1=x1,
                 line={
-                    # 'color': 'rgba(255, 0, 0, 1)',
                     'width': 0,
                 },
                 fillcolor='rgba(165, 131, 226, 0.10)'
