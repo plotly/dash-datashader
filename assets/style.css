@@ -1,7 +1,8 @@
-@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700');
 
 body{
-    font-family: 'Roboto', sans-serif;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 300;
     color: #a3a7b0;
     background-color: #23272c;
     margin: 0;
@@ -15,6 +16,11 @@ hr{
     margin: 0 0 6% 0;
 }
 
+h3{
+    font-family: "Open Sans", sans-serif;
+    font-weight: 600;
+}
+
 #header{
     padding: 1% 6%;
 }
@@ -24,7 +30,7 @@ hr{
 }
 
 p, #header-2{
-    font-family: 'Roboto Light', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 2rem !important;
     margin: 0 11%;
 }
@@ -39,7 +45,8 @@ p, #header-2{
 }
 
 strong{
-    font-family: 'Roboto Medium', sans-serif !important;
+    font-family: "Open Sans", sans-serif !important;
+    font-weight: 600 !important;
     color: #75baf2 !important;
 }
 
