@@ -58,3 +58,8 @@ strong{
 ._dash-undo-redo{
     display: none;
 }
+
+#logo{
+    height: 50px;
+    float: right;
+}
