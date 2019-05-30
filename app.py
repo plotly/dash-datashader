@@ -153,9 +153,7 @@ app.layout = html.Div(
         html.Div(
             id="header",
             children=[
-                html.H3(
-                    "Visualize millions of points with datashader and Plotly"
-                ),
+                html.H3("Visualize millions of points with datashader and Plotly"),
                 html.Img(id="logo", src=app.get_asset_url("dash-logo.png")),
             ],
             className="row",
@@ -212,9 +210,9 @@ app.layout = html.Div(
 )
 def selectionRange(selection):
     if (
-            selection is not None
-            and "xaxis.range[0]" in selection
-            and "xaxis.range[1]" in selection
+        selection is not None
+        and "xaxis.range[0]" in selection
+        and "xaxis.range[1]" in selection
     ):
         x0 = selection["xaxis.range[0]"]
         x1 = selection["xaxis.range[1]"]
@@ -245,9 +243,9 @@ def selectionRange(selection):
 def selectionHighlight(selection):
     new_fig2 = fig2.copy()
     if (
-            selection is not None
-            and "xaxis.range[0]" in selection
-            and "xaxis.range[1]" in selection
+        selection is not None
+        and "xaxis.range[0]" in selection
+        and "xaxis.range[1]" in selection
     ):
         x0 = selection["xaxis.range[0]"]
         x1 = selection["xaxis.range[1]"]
@@ -278,9 +276,9 @@ def selectionHighlight(selection):
 def draw_undecimated_data(selection):
     new_fig1 = fig1.copy()
     if (
-            selection is not None
-            and "xaxis.range[0]" in selection
-            and "xaxis.range[1]" in selection
+        selection is not None
+        and "xaxis.range[0]" in selection
+        and "xaxis.range[1]" in selection
     ):
         x0 = selection["xaxis.range[0]"]
         x1 = selection["xaxis.range[1]"]
