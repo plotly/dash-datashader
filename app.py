@@ -4,7 +4,6 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
-import plotly.plotly as py
 import plotly.graph_objs as go
 import datashader as ds
 import datashader.transfer_functions as tf
@@ -19,12 +18,12 @@ from collections import OrderedDict
 # Data generation
 #######################################################################################################################
 
-n = 1000000
-max_points = 100000
+n = 1_000_000
+max_points = 100_000
 
 np.random.seed(2)
 cols = ['Signal']  # Column name of signal
-start = 1456297053  # Start time
+start = 0  # Start time
 end = start + n  # End time
 
 # Generate a fake signal
@@ -43,7 +42,9 @@ data['Signal'][locs] *= 2
 
 # # Default plot ranges:
 x_range = (start, end)
-y_range = (1.2 * signal.min(), 1.2 * signal.max())
+y_range = (signal.min(), signal.max())
+y_diff = y_range[1] - y_range[0]
+y_range = (y_range[0] - 0.2*y_diff, y_range[1] + 0.2*y_diff)
 
 # Create a dataframe
 data['Time'] = np.linspace(start, end, n)
@@ -83,6 +84,7 @@ fig1 = {
         'showscale': False,
         'colorscale': [[0, 'rgba(255, 255, 255,0)'], [1, '#a3a7b0']]}],
     'layout': {
+        'autosize': True,
         'margin': {'t': 50, 'b': 20},
         'height': 250,
         'xaxis': {
@@ -102,7 +104,8 @@ fig1 = {
             'color': '#a3a7b0'
         },
         'plot_bgcolor': '#23272c',
-        'paper_bgcolor': '#23272c'}
+        'paper_bgcolor': '#23272c'
+    }
 }
 
 fig2 = {
@@ -238,24 +241,23 @@ def selectionHighlight(selection):
         x1 = selection['xaxis.range[1]']
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
-        if num_pts < max_points:
-            shape = dict(
-                type='rect',
-                xref='x',
-                yref='paper',
-                y0=0,
-                y1=1,
-                x0=x0,
-                x1=x1,
-                line={
-                    'width': 0,
-                },
-                fillcolor='rgba(165, 131, 226, 0.10)'
-            )
+        
+        shape = dict(
+            type='rect',
+            xref='x',
+            yref='paper',
+            y0=0,
+            y1=1,
+            x0=x0,
+            x1=x1,
+            line={
+                'width': 0,
+            },
+            fillcolor='rgba(165, 131, 226, 0.10)'
+        )
 
-            new_fig2['layout']['shapes'] = [shape]
-        else:
-            new_fig2['layout']['shapes'] = []
+        new_fig2['layout']['shapes'] = [shape]
+        
     else:
         new_fig2['layout']['shapes'] = []
     return new_fig2
@@ -273,6 +275,7 @@ def draw_undecimated_data(selection):
         sub_df = df[(df.Time >= x0) & (df.Time <= x1)]
         num_pts = len(sub_df)
         if num_pts < max_points:
+            # Visualize with scattergl
             high_res_data = [
                 dict(
                     x=sub_df['Time'],
@@ -287,7 +290,40 @@ def draw_undecimated_data(selection):
             high_res_layout = new_fig1['layout']
             high_res = dict(data=high_res_data, layout=high_res_layout)
         else:
-            high_res = fig1.copy()
+            # Visualize zoomed in region with data shader
+            x_range = (x0, x1)
+            y_range = (sub_df["Signal"].min(), sub_df["Signal"].max())
+            y_diff = y_range[1] - y_range[0]
+            y_range = (y_range[0] - 0.2*y_diff, y_range[1] + 0.2*y_diff)
+            print(y_range)
+
+
+            cvs = ds.Canvas(x_range=x_range, y_range=y_range)
+
+            aggs = OrderedDict((c, cvs.line(sub_df, 'Time', c)) for c in cols)
+            img = tf.shade(aggs['Signal'])
+
+            arr = np.array(img)
+            z = arr.tolist()
+
+            # axes
+            dims = len(z[0]), len(z)
+
+            x = np.linspace(x_range[0], x_range[1], dims[0])
+            y = np.linspace(y_range[0], y_range[1], dims[0])
+            
+            high_res_data = [
+                dict(
+                    x=x,
+                    y=y,
+                    z=z,
+                    type='heatmap',
+                    showscale=False,
+                    colorscale=[[0, 'rgba(255, 255, 255,0)'], [1, '#a3a7b0']],
+                    )
+                ]
+            high_res_layout = new_fig1['layout']
+            high_res = dict(data=high_res_data, layout=high_res_layout)            
     else:
         high_res = fig1.copy()
     return high_res
