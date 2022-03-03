@@ -295,8 +295,6 @@ def draw_undecimated_data(selection):
             y_range = (sub_df["Signal"].min(), sub_df["Signal"].max())
             y_diff = y_range[1] - y_range[0]
             y_range = (y_range[0] - 0.2*y_diff, y_range[1] + 0.2*y_diff)
-            print(y_range)
-
 
             cvs = ds.Canvas(x_range=x_range, y_range=y_range)
 
